@@ -36,7 +36,7 @@ fqdn==1.5.1
 fsspec==2025.3.0
 gast==0.5.4
 google-pasta==0.2.0
-grpcio==1.62.1
+grpcio==1.62.2
 gunicorn==26.0.0
 h11==0.14.0
 h5py==3.10.0
