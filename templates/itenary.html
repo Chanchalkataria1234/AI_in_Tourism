@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Itinerary Planner - Meera Valley Resort</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --gold: #C9A84C; --deep: #1A1208; --warm: #2E1F0A; --cream: #F7F0E3; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Jost', sans-serif; background: var(--deep); color: var(--cream); display: flex; flex-direction: column; height: 100vh; }
+  
+  /* Header */
+  header { padding: 20px 40px; background: rgba(26,18,8,0.95); border-bottom: 1px solid rgba(201,168,76,0.2); display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--gold); text-decoration: none; letter-spacing: 2px; }
+  .back-btn { color: var(--gold); text-decoration: none; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; border: 1px solid var(--gold); padding: 8px 16px; transition: 0.3s; }
+  .back-btn:hover { background: var(--gold); color: var(--deep); }
+
+  /* Chat Area */
+  .chat-container { flex: 1; max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; padding: 20px; }
+  .messages { flex: 1; overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 20px; }
+  
+  /* Message Bubbles */
+  .msg { max-width: 80%; padding: 15px 20px; line-height: 1.6; font-size: 0.95rem; }
+  .msg.bot { background: var(--warm); color: var(--cream); align-self: flex-start; border-radius: 0 15px 15px 15px; border: 1px solid rgba(201,168,76,0.1); }
+  .msg.user { background: var(--gold); color: var(--deep); align-self: flex-end; border-radius: 15px 0 15px 15px; font-weight: 500; }
+  
+  /* Input Area */
+  .input-area { margin-top: 20px; display: flex; gap: 10px; background: var(--warm); padding: 10px; border-radius: 30px; border: 1px solid rgba(201,168,76,0.3); }
+  .input-area input { flex: 1; background: transparent; border: none; color: var(--cream); font-family: 'Jost', sans-serif; font-size: 1rem; padding: 10px 20px; outline: none; }
+  .input-area button { background: var(--gold); color: var(--deep); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; transition: transform 0.2s; }
+  .input-area button:hover { transform: scale(1.05); }
+
+  /* Custom Scrollbar */
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">MEERA VALLEY</a>
+  <a href="/" class="back-btn">← Back to Resort</a>
+</header>
+
+<div class="chat-container">
+  <div class="messages" id="chatMessages">
+    <div class="msg bot">
+      Namaste! I am your AI Travel Concierge. I'd love to help you plan the perfect Udaipur itinerary. <br><br>
+      To get started, tell me: <strong>How many days are you staying, who are you traveling with, and what are your main interests?</strong> (e.g., "I am coming for 3 days with my spouse, we love history and sunset views.")
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="chatInput" placeholder="Tell me your travel preferences..." onkeypress="if(event.key === 'Enter') sendItineraryMessage()">
+    <button onclick="sendItineraryMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  function addMessage(text, sender, id = null) {
+    const chat = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = `msg ${sender}`;
+    if (id) div.id = id;
+    div.innerHTML = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  function sendItineraryMessage() {
+    const input = document.getElementById("chatInput");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    // Show User Message
+    addMessage(msg, "user");
+    input.value = "";
+
+    // Show Loading
+    const loadingId = "load-" + Date.now();
+    addMessage("<i>Crafting your itinerary...</i>", "bot", loadingId);
+
+    // Call the NEW backend route
+    fetch("/itinerary-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg })
+    })
+    .then(async response => {
+      document.getElementById(loadingId).remove();
+      
+      let botDiv = addMessage("", "bot");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let fullText = "";
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        fullText += decoder.decode(value, {stream: true});
+        // Replace newlines with <br> for proper formatting
+        botDiv.innerHTML = fullText.replace(/\n/g, "<br>");
+        document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
+      }
+    })
+    .catch(err => {
+      document.getElementById(loadingId).remove();
+      addMessage("Sorry, I lost my connection. Please try again.", "bot");
+    });
+  }
+</script>
+
+</body>
+</html>

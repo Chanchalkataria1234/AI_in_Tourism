@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Guest Reviews – Meera Valley Resort</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --gold:      #d4af37;
+        --gold-light:#e8c84a;
+        --gold-dim:  rgba(212,175,55,0.12);
+        --gold-line: rgba(212,175,55,0.25);
+        --bg:        #080603;
+        --card-bg:   rgba(212,175,55,0.04);
+        --input-bg:  rgba(255,255,255,0.05);
+        --border:    rgba(212,175,55,0.22);
+        --text:      #f0ead8;
+        --muted:     #9a9080;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        padding: 60px 16px;
+    }
+
+    .container {
+        width: 760px;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Page header */
+    .page-header {
+        text-align: center;
+        margin-bottom: 52px;
+    }
+
+    .page-header h1 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 52px;
+        font-weight: 700;
+        color: var(--gold);
+        letter-spacing: 2px;
+    }
+
+    .page-header p {
+        font-size: 13px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 8px;
+    }
+
+    .header-divider {
+        width: 48px;
+        height: 2px;
+        background: var(--gold);
+        opacity: 0.5;
+        margin: 16px auto 0;
+    }
+
+    /* Review form */
+    .review-form {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 32px 36px;
+        margin-bottom: 40px;
+    }
+
+    .review-form h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 22px;
+        color: var(--gold);
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .field-group {
+        margin-bottom: 16px;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 13px 16px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: border-color 0.2s, background 0.2s;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--gold);
+        background: rgba(212,175,55,0.06);
+    }
+
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d4af37' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-color: var(--input-bg);
+        padding-right: 40px;
+        cursor: pointer;
+        color: var(--gold);
+        font-size: 16px;
+        letter-spacing: 2px;
+    }
+
+    select option {
+        background: #1a1a1a;
+        color: var(--gold);
+        font-size: 16px;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 110px;
+        line-height: 1.6;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: var(--gold);
+        color: #0a0a0a;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+        padding: 15px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s;
+        font-family: 'Inter', sans-serif;
+        margin-top: 4px;
+    }
+
+    .submit-btn:hover {
+        background: var(--gold-light);
+        transform: translateY(-1px);
+    }
+
+    /* Reviews list */
+    .reviews-section h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 20px;
+        color: var(--muted);
+        margin-bottom: 20px;
+        font-weight: 400;
+        letter-spacing: 1px;
+    }
+
+    .review-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px 28px;
+        margin-bottom: 16px;
+        transition: border-color 0.2s;
+    }
+
+    .review-card:hover {
+        border-color: rgba(212,175,55,0.45);
+    }
+
+    .review-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .review-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .review-stars {
+        color: var(--gold);
+        font-size: 15px;
+        letter-spacing: 2px;
+    }
+
+    .review-text {
+        font-size: 14px;
+        color: rgba(240,234,216,0.75);
+        line-height: 1.7;
+    }
+
+    .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--gold-dim);
+        border: 1px solid var(--gold-line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--gold);
+        flex-shrink: 0;
+        margin-right: 12px;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .review-author {
+        display: flex;
+        align-items: center;
+    }
+
+    @media (max-width: 600px) {
+        .form-row { grid-template-columns: 1fr; }
+        .review-form { padding: 24px 20px; }
+        .page-header h1 { font-size: 38px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="page-header">
+        <h1>Guest Reviews</h1>
+        <p>Meera Valley Resort &nbsp;·&nbsp; Udaipur</p>
+        <div class="header-divider"></div>
+    </div>
+
+    <div class="review-form">
+        <h2>Share Your Experience</h2>
+        <form action="/submit-review" method="POST">
+            <div class="form-row">
+                <div class="field-group">
+                    <label class="field-label">Your Name</label>
+                    <input type="text" name="name" placeholder="e.g. Rahul Sharma" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Rating</label>
+                    <select name="rating">
+                        <option value="5">★★★★★ &nbsp; Excellent</option>
+                        <option value="4">★★★★ &nbsp; Very Good</option>
+                        <option value="3">★★★ &nbsp; Good</option>
+                        <option value="2">★★ &nbsp; Fair</option>
+                        <option value="1">★ &nbsp; Poor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Your Review</label>
+                <textarea name="review" placeholder="Tell us about your stay at Meera Valley..." required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Submit Review</button>
+        </form>
+    </div>
+
+    <div class="reviews-section">
+        {% for review in reviews %}
+        <div class="review-card">
+            <div class="review-top">
+                <div class="review-author">
+                    <div class="avatar">{{ review["guest_name"][0] }}</div>
+                    <span class="review-name">{{ review["guest_name"] }}</span>
+                </div>
+                <span class="review-stars">{{ "★" * review["rating"] }}{% if review["rating"] < 5 %}{{ "☆" * (5 - review["rating"]) }}{% endif %}</span>
+            </div>
+            <p class="review-text">{{ review["review_text"] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+</body>
+</html>

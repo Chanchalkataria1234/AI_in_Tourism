@@ -1,0 +1,14 @@
+import google.generativeai as genai
+import os
+
+# Put your API key here
+os.environ["GOOGLE_API_KEY"] = "AIzaSyBZGqdAdH7cRj6bmrI5_R_KoBUWXEL0zz0"
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+print("--- AVAILABLE MODELS FOR YOUR KEY ---")
+try:
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            print(m.name)
+except Exception as e:
+    print(f"Error: {e}")

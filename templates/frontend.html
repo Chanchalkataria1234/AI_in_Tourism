@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meera Valley Resort – Udaipur</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8D48B;
+    --deep: #1A1208;
+    --warm: #2E1F0A;
+    --cream: #F7F0E3;
+    --muted: #8A7A60;
+    --white: #FFFDF8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--deep);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    padding: 20px 60px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(to bottom, rgba(26,18,8,0.95), transparent);
+    transition: background 0.3s;
+  }
+  nav.scrolled { background: rgba(26,18,8,0.97); }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 600; letter-spacing: 2px;
+    color: var(--gold);
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: var(--cream); text-decoration: none;
+    font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  /* ── HERO ── */
+  .hero {
+    height: 100vh; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1600&q=80') center/cover no-repeat;
+    transform: scale(1.05);
+    animation: slowZoom 20s ease-in-out infinite alternate;
+    filter: brightness(0.55);
+  }
+  @keyframes slowZoom {
+    from { transform: scale(1.05); }
+    to { transform: scale(1.12); }
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(26,18,8,0.3) 0%, rgba(26,18,8,0.1) 40%, rgba(26,18,8,0.7) 100%);
+  }
+  .hero-content {
+    position: relative; text-align: center;
+    animation: fadeUp 1.2s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-weight: 300;
+    font-size: 1rem; letter-spacing: 6px; color: var(--gold-light);
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 300; line-height: 1;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .hero-title span { color: var(--gold); font-style: italic; }
+  .hero-subtitle {
+    font-size: 0.85rem; letter-spacing: 4px; color: var(--cream);
+    opacity: 0.8; margin-bottom: 48px; text-transform: uppercase;
+  }
+  .divider {
+    width: 80px; height: 1px; background: var(--gold);
+    margin: 0 auto 48px;
+  }
+  .btn-book {
+    display: inline-block;
+    border: 1px solid var(--gold);
+    color: var(--gold); text-decoration: none;
+    font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase;
+    padding: 16px 48px;
+    position: relative; overflow: hidden;
+    transition: color 0.4s;
+  }
+  .btn-book::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--gold);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  .btn-book:hover { color: var(--deep); }
+  .btn-book:hover::before { transform: scaleX(1); }
+  .btn-book span { position: relative; z-index: 1; }
+
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem; letter-spacing: 4px; color: var(--gold);
+    text-transform: uppercase;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    animation: pulse 2s infinite;
+  }
+  .scroll-arrow {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollDown 1.5s ease-in-out infinite;
+  }
+  @keyframes scrollDown {
+    0% { opacity: 1; transform: scaleY(0) translateY(-50%); }
+    50% { opacity: 1; transform: scaleY(1) translateY(0); }
+    100% { opacity: 0; transform: scaleY(1) translateY(20px); }
+  }
+
+  /* ── SECTION BASE ── */
+  section { padding: 100px 60px; }
+  .section-label {
+    font-size: 0.65rem; letter-spacing: 5px; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    font-weight: 300; line-height: 1.1;
+    color: var(--white); margin-bottom: 20px;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-body {
+    font-size: 0.95rem; line-height: 1.9;
+    color: var(--muted); max-width: 560px;
+  }
+
+  /* ── ABOUT ── */
+  .about {
+    background: var(--deep);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .about-image-wrap {
+    position: relative; height: 550px;
+  }
+  .about-image-wrap img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+  }
+  .about-image-accent {
+    position: absolute; top: -20px; left: -20px;
+    width: 200px; height: 200px;
+    border: 1px solid var(--gold); opacity: 0.4;
+    pointer-events: none;
+  }
+  .about-image-badge {
+    position: absolute; bottom: 30px; right: -30px;
+    background: var(--gold); color: var(--deep);
+    padding: 20px 24px; text-align: center;
+  }
+  .about-image-badge .big { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 600; display: block; }
+  .about-image-badge .small { font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; }
+  .gold-bar { width: 50px; height: 2px; background: var(--gold); margin-bottom: 24px; }
+  .amenities {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 36px;
+  }
+  .amenity {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.8rem; letter-spacing: 1px; color: var(--cream); opacity: 0.8;
+  }
+  .amenity::before { content: '✦'; color: var(--gold); font-size: 0.6rem; }
+
+  /* ── PHOTOS CAROUSEL ── */
+  .photos-section { background: var(--warm); padding: 80px 0; }
+  .photos-header { padding: 0 60px 40px; }
+  .carousel-track {
+    display: flex; gap: 20px; overflow-x: auto; padding: 0 60px 20px;
+    scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+    cursor: grab;
+  }
+  .carousel-track:active { cursor: grabbing; }
+  .carousel-track::-webkit-scrollbar { height: 3px; }
+  .carousel-track::-webkit-scrollbar-thumb { background: var(--gold); }
+  .carousel-card {
+    min-width: 360px; height: 240px; position: relative; flex-shrink: 0;
+    overflow: hidden;
+  }
+  .carousel-card img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .carousel-card:hover img { transform: scale(1.06); }
+  .carousel-card-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(26,18,8,0.85), transparent);
+    padding: 20px 16px 12px;
+    font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .photos-cta { padding: 40px 60px 0; display: flex; align-items: center; gap: 24px; }
+  .scroll-note { font-size: 0.7rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+
+  /* ── BOOK CTA ── */
+  .book-cta {
+    background: linear-gradient(135deg, var(--warm) 0%, #0e0a04 100%);
+    text-align: center; padding: 100px 60px;
+    position: relative; overflow: hidden;
+  }
+  .book-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url('https://meeravalleyresort.nexottel.com/assets/images/gallery/gallery-sub-img15.jpg') center/cover;
+    opacity: 0.08;
+  }
+  .book-cta-content { position: relative; }
+  .book-cta .section-body { margin: 0 auto 40px; text-align: center; max-width: 500px; }
+  .btn-book-large {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--deep); text-decoration: none;
+    font-size: 0.8rem; letter-spacing: 5px; text-transform: uppercase;
+    font-weight: 600; padding: 20px 64px;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .btn-book-large:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+  /* ── ATTRACTIONS ── */
+  .attractions { background: var(--deep); }
+  .attractions-header {
+    display: grid; grid-template-columns: 1fr auto; align-items: end; margin-bottom: 60px;
+  }
+  .attractions-about { font-size: 0.9rem; line-height: 1.8; color: var(--muted); max-width: 420px; margin-top: 12px; }
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+  }
+  .attr-card {
+    position: relative; height: 420px; overflow: hidden; cursor: pointer;
+  }
+  .attr-card img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.7s ease, filter 0.5s;
+    filter: brightness(0.7);
+  }
+  .attr-card:hover img { transform: scale(1.08); filter: brightness(0.5); }
+  .attr-card-info {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 30px 24px 24px;
+    background: linear-gradient(to top, rgba(26,18,8,0.95) 0%, transparent 100%);
+    transform: translateY(40px); transition: transform 0.4s ease;
+  }
+  .attr-card:hover .attr-card-info { transform: translateY(0); }
+  .attr-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400; color: var(--white);
+    margin-bottom: 6px;
+  }
+  .attr-card-desc {
+    font-size: 0.75rem; line-height: 1.6; color: var(--muted);
+    opacity: 0; transition: opacity 0.4s 0.1s;
+  }
+  .attr-card:hover .attr-card-desc { opacity: 1; }
+  .attr-card-tag {
+    display: inline-block;
+    font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold); border: 1px solid var(--gold);
+    padding: 4px 10px; margin-bottom: 8px;
+  }
+  .attr-more {
+    display: flex; align-items: center; justify-content: center;
+    height: 420px; background: var(--warm);
+    flex-direction: column; gap: 12px; cursor: pointer;
+    transition: background 0.3s;
+  }
+  .attr-more:hover { background: #3a2910; }
+  .attr-more-icon { font-size: 2rem; color: var(--gold); }
+  .attr-more-text { font-size: 0.7rem; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; }
+
+  /* ── ITINERARY ── */
+  .itinerary-cta {
+    background: var(--warm);
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+  }
+  .itinerary-left {
+    padding: 80px 60px;
+    background: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/500379341.jpg?k=6c397583d9745b0c975d2d4627c75bb9dc73d793dcd01c5bd9139edf70bb089b&o=') center/cover;
+    position: relative;
+  }
+  .itinerary-left::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(26,18,8,0.75);
+  }
+  .itinerary-left-content { position: relative; z-index: 1; }
+  .itinerary-right {
+    padding: 80px 60px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .ai-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(201,168,76,0.15); border: 1px solid var(--gold);
+    padding: 8px 16px; margin-bottom: 24px;
+    font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold);
+  }
+  .ai-badge::before { content: '✦'; }
+  .sample-itinerary { margin-top: 36px; }
+  .itin-day {
+    display: flex; gap: 20px; margin-bottom: 20px;
+    padding-bottom: 20px; border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .itin-day:last-child { border-bottom: none; }
+  .itin-day-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300; color: var(--gold); opacity: 0.5;
+    min-width: 36px; line-height: 1;
+  }
+  .itin-day-title { font-size: 0.85rem; font-weight: 500; color: var(--white); margin-bottom: 4px; }
+  .itin-day-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
+
+  .btn-itinerary {
+    display: inline-block; margin-top: 36px;
+    background: transparent; border: 1px solid var(--gold);
+    color: var(--gold); text-decoration: none;
+    font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase;
+    padding: 16px 40px; cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Jost', sans-serif;
+  }
+  .btn-itinerary:hover { background: var(--gold); color: var(--deep); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #0a0804;
+    padding: 60px; text-align: center;
+    border-top: 1px solid rgba(201,168,76,0.2);
+  }
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300; color: var(--gold);
+    letter-spacing: 4px; margin-bottom: 12px;
+  }
+  .footer-sub { font-size: 0.7rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 32px; }
+  .footer-links { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; flex-wrap: wrap; }
+  .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; transition: color 0.3s; }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy { font-size: 0.7rem; color: rgba(138,122,96,0.4); letter-spacing: 1px; }
+
+  /* ── ITINERARY MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: rgba(10,8,4,0.92);
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--warm); border: 1px solid rgba(201,168,76,0.3);
+    width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto;
+    padding: 50px;
+    animation: slideUp 0.4s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-close {
+    float: right; background: none; border: none;
+    color: var(--muted); font-size: 1.5rem; cursor: pointer;
+    transition: color 0.3s;
+  }
+  .modal-close:hover { color: var(--gold); }
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; color: var(--white); margin-bottom: 8px; clear: both;
+  }
+  .modal-sub { font-size: 0.75rem; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 30px; }
+  .modal-form { display: flex; flex-direction: column; gap: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .form-group input, .form-group select, .form-group textarea {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(201,168,76,0.2);
+    color: var(--cream); padding: 12px 16px;
+    font-family: 'Jost', sans-serif; font-size: 0.85rem;
+    outline: none; transition: border-color 0.3s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); }
+  .form-group select option { background: var(--warm); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .btn-generate {
+    background: var(--gold); color: var(--deep);
+    border: none; padding: 16px;
+    font-family: 'Jost', sans-serif; font-size: 0.8rem;
+    letter-spacing: 4px; text-transform: uppercase; font-weight: 600;
+    cursor: pointer; transition: background 0.3s, transform 0.2s;
+    margin-top: 8px;
+  }
+  .btn-generate:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .ai-result {
+    display: none; margin-top: 30px;
+    border-top: 1px solid rgba(201,168,76,0.2); padding-top: 30px;
+  }
+  .ai-result.visible { display: block; animation: fadeIn 0.5s; }
+  .ai-result-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 16px; }
+  .ai-result-content { font-size: 0.85rem; line-height: 1.9; color: var(--cream); white-space: pre-wrap; }
+  .loading-dots { display: inline-flex; gap: 6px; }
+  .loading-dots span { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: dot 1.2s infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot { 0%,80%,100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 60px 24px; }
+    .about { grid-template-columns: 1fr; }
+    .about-image-wrap { height: 320px; }
+    .about-image-badge { right: 10px; bottom: 10px; }
+    .cards-grid { grid-template-columns: 1fr 1fr; }
+    .itinerary-cta { grid-template-columns: 1fr; }
+    .itinerary-left { min-height: 200px; }
+    .form-row { grid-template-columns: 1fr; }
+    .modal { padding: 30px; }
+    .attractions-header { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#">MEERA VALLEY</a>
+  <ul class="nav-links">
+    <li><a href="#about">Resort</a></li>
+    <li><a href="#photos">Gallery</a></li>
+    <li><a href="#attractions">Udaipur</a></li>
+    <li><a href="#itinerary">Itinerary</a></li>
+    <li><a href="/reviews">Reviews</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-tagline">Rajasthan's Hidden Gem</p>
+    <h1 class="hero-title">Meera Valley<br><span>Resort</span></h1>
+    <p class="hero-subtitle">Udaipur · City of Lakes</p>
+    <div class="divider"></div>
+    <a href="/book-now" class="btn-book"><span>Book Your Stay</span></a>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-image-wrap">
+    <div class="about-image-accent"></div>
+    <img src="https://lh3.googleusercontent.com/p/AF1QipMfZ3wKFF9Z-Z2s-lDSD294f17708FYEp6uPXhp=s1360-w1360-h1020-rw" alt="Meera Valley Resort view" />
+    <div class="about-image-badge">
+      <span class="big">4.8</span>
+      <span class="small">Guest Rating</span>
+    </div>
+  </div>
+  <div>
+    <div class="gold-bar"></div>
+    <p class="section-label">About the Resort</p>
+    <h2 class="section-title">Where <em>Luxury</em> Meets<br>Valley Serenity</h2>
+    <p class="section-body">Nestled in the lush Aravalli hills of Udaipur, Meera Valley Resort is a sanctuary of refined comfort and authentic Rajasthani hospitality. With panoramic views of the valley and the shimmering lakes below, every moment here is a memory in the making.</p>
+    <div class="amenities">
+      <div class="amenity">Pool Overlooking Valley</div>
+      <div class="amenity">Authentic Rajasthani Cuisine</div>
+      <div class="amenity">Banquet Hall</div>
+      <div class="amenity">2 Lavishing gardens</div>
+      <div class="amenity">Sunset View Terrace</div>
+      <div class="amenity">Trekking Point</div>
+      <div class="amenity">Game zone</div>
+      <div class="amenity">AI Concierge 24/7</div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTOS -->
+<div class="photos-section" id="photos">
+  <div class="photos-header">
+    <p class="section-label">Gallery</p>
+    <h2 class="section-title">Resort <em>Photography</em></h2>
+  </div>
+  <div class="carousel-track" id="resortCarousel">
+    <div class="carousel-card">
+      <img src="https://lh3.googleusercontent.com/p/AF1QipMI_JAAXcqvc3feoXILtruKftKt7uGKYQPI1M9w=s1360-w1360-h1020-rw" alt="Pool View" />
+      <div class="carousel-card-label">Pool View</div>
+    </div>
+    <div class="carousel-card">
+      <img src="https://meeravalleyresort.nexottel.com/assets/images/resources/service-2-2.jpg" alt="Luxury Suite" />
+      <div class="carousel-card-label">Valley View Room</div>
+    </div>
+    <div class="carousel-card">
+      <img src="https://lh3.googleusercontent.com/p/AF1QipPZvNqAVy0MjWg8xXk9gpFA8_SI3pFEDXvlnADo=s1360-w1360-h1020-rw" alt="Resort Exterior" />
+      <div class="carousel-card-label">Resort Exterior</div>
+    </div>
+    <div class="carousel-card">
+      <img src="https://lh3.googleusercontent.com/p/AF1QipNQnUaIC_M41MNWjet3HFXPU16jHdtDD4XlHoWk=s1360-w1360-h1020-rw" alt="Dining" />
+      <div class="carousel-card-label">Fine Dining</div>
+    </div>
+    <div class="carousel-card">
+      <img src="https://meeravalleyresort.nexottel.com/assets/images/gallery/gallery-sub-img6.jpg" alt="Spa" />
+      <div class="carousel-card-label">Banquet Hall</div>
+    </div>
+    <div class="carousel-card">
+      <img src="https://media.easemytrip.com/media/Hotel/SHL-240307149100171/RoomImage/RoomImageko0OuL.jpg" alt="Valley View" />
+      <div class="carousel-card-label">Trekking Point</div>
+    </div>
+  </div>
+  <div class="photos-cta">
+    <p class="scroll-note">← Scroll to explore →</p>
+  </div>
+</div>
+
+<!-- BOOK CTA -->
+<div class="book-cta">
+  <div class="book-cta-content">
+    <p class="section-label">Reservations</p>
+    <h2 class="section-title">Ready for an <em>Unforgettable</em><br>Experience?</h2>
+    <p class="section-body">From romantic getaways to family retreats, Meera Valley Resort crafts bespoke experiences tailored to every traveller.</p>
+    <a href="/book-now" class="btn-book large">BOOK YOUR STAY NOW</a>
+  </div>
+</div>
+
+<!-- ATTRACTIONS -->
+<section class="attractions" id="attractions">
+  <div class="attractions-header">
+    <div>
+      <p class="section-label">Explore Udaipur</p>
+      <h2 class="section-title">Attractions <em>Near</em><br>the Resort</h2>
+      <p class="attractions-about">Udaipur — the Venice of the East — is adorned with magnificent palaces, serene lakes, and centuries of Mewar heritage. Every corner tells a story.</p>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="attr-card">
+      <img src="https://img.avianexperiences.com/attraction/b8d0c70c-4d85-42aa-b571-5c50d3001a99" alt="City Palace" />
+      <div class="attr-card-info">
+        <div class="attr-card-tag">Palace</div>
+        <div class="attr-card-name">City Palace</div>
+        <div class="attr-card-desc">A majestic complex of palaces built over 400 years by the Maharanas of Mewar. Offers stunning views of Lake Pichola and the Aravalli hills.</div>
+      </div>
+    </div>
+    <div class="attr-card">
+      <img src="https://udaipurtaxiservices.com/blog/wp-content/uploads/2025/03/Sajjangarh-Fort.jpg" alt="Sajjangarh" />
+      <div class="attr-card-info">
+        <div class="attr-card-tag">Fort</div>
+        <div class="attr-card-name">Sajjangarh</div>
+        <div class="attr-card-desc">The Monsoon Palace perched atop the Aravalli hills, offering breathtaking panoramic views of Udaipur, especially magical at sunset.</div>
+      </div>
+    </div>
+    <div class="attr-card">
+      <img src="https://stampedmoments.com/wp-content/uploads/2025/11/lake-pichola-udaipur.jpg" alt="Lake Pichola" />
+      <div class="attr-card-info">
+        <div class="attr-card-tag">Lake</div>
+        <div class="attr-card-name">Lake Pichola</div>
+        <div class="attr-card-desc">An enchanting artificial lake created in 1362 AD, home to the iconic Jag Mandir island palace and unforgettable sunset boat rides.</div>
+      </div>
+    </div>
+    <div class="attr-card" id="moreCard">
+      <img src="https://www.rajasthanplaces.com/wp-content/uploads/2024/08/Saheliyon-Ki-Bari.webp" alt="More attractions" />
+      <div class="attr-card-info">
+        <div class="attr-card-tag">Gardens</div>
+        <div class="attr-card-name">Saheliyon ki Bari</div>
+        <div class="attr-card-desc">The Garden of Maidens — a royal retreat with ornate fountains, kiosks, marble elephants, and a lotus pool built for royal ladies.</div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center; margin-top: 50px;">
+    <a href="#itinerary" class="btn-itinerary">Make AI Itinerary ✦</a>
+  </div>
+</section>
+
+<!-- ITINERARY CTA -->
+<div class="itinerary-cta" id="itinerary">
+  <div class="itinerary-left">
+    <div class="itinerary-left-content">
+      <p class="section-label">AI-Powered Tourism</p>
+      <h2 class="section-title" style="max-width: 300px;">Your Perfect <em>Udaipur</em> Journey</h2>
+      <p class="section-body" style="margin-top: 16px;">Let our AI travel assistant craft a personalised itinerary based on your interests, duration, and travel style.</p>
+    </div>
+  </div>
+  <div class="itinerary-right">
+    <div class="ai-badge">AI Concierge</div>
+    <p class="section-label">Sample Itinerary</p>
+    <h3 class="section-title" style="font-size: 1.8rem;">3 Days in Udaipur</h3>
+    <div class="sample-itinerary">
+      <div class="itin-day">
+        <div class="itin-day-num">1</div>
+        <div>
+          <div class="itin-day-title">Arrival & Lake Pichola Sunset</div>
+          <div class="itin-day-desc">Check-in to Meera Valley · Evening boat ride on Lake Pichola · Welcome dinner at the resort terrace</div>
+        </div>
+      </div>
+      <div class="itin-day">
+        <div class="itin-day-num">2</div>
+        <div>
+          <div class="itin-day-title">Palaces & Heritage Walk</div>
+          <div class="itin-day-desc">City Palace Museum · Jagdish Temple · Saheliyon ki Bari garden · Local bazaar shopping</div>
+        </div>
+      </div>
+      <div class="itin-day">
+        <div class="itin-day-num">3</div>
+        <div>
+          <div class="itin-day-title">Sajjangarh & Village Safari</div>
+          <div class="itin-day-desc">Monsoon Palace sunrise · Shilpgram craft village · Mewar cultural show · Departure</div>
+        </div>
+      </div>
+    </div>
+   <a href="/itinerary"><button class="btn-itinerary">Create My Itinerary ✦</button></a>
+</div>
+</div>
+
+
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBooking()">✕</button>
+    <h2 class="modal-title">Reserve Your Stay</h2>
+    <p class="modal-sub">Meera Valley Resort · Udaipur</p>
+    <div class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" placeholder="your@email.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Check-In</label>
+          <input type="date" />
+        </div>
+        <div class="form-group">
+          <label>Check-Out</label>
+          <input type="date" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Guests</label>
+          <select>
+            <option>1 Guest</option>
+            <option>2 Guests</option>
+            <option>3 Guests</option>
+            <option>4+ Guests</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Room Type</label>
+          <select>
+            <option>Valley View Deluxe</option>
+            <option>Lake View Suite</option>
+            <option>Heritage Royal Suite</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-generate">Confirm Booking Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI ITINERARY MODAL -->
+<div class="modal-overlay" id="itineraryModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeItinerary()">✕</button>
+    <h2 class="modal-title">AI Itinerary Planner</h2>
+    <p class="modal-sub">✦ </p>
+    <div class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="travelerName" placeholder="e.g. Priya" />
+        </div>
+        <div class="form-group">
+          <label>Number of Days</label>
+          <select id="numDays">
+            <option value="2">2 Days</option>
+            <option value="3" selected>3 Days</option>
+            <option value="4">4 Days</option>
+            <option value="5">5 Days</option>
+            <option value="7">7 Days</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Travel Style</label>
+          <select id="travelStyle">
+            <option value="cultural">Cultural & Heritage</option>
+            <option value="adventure">Adventure & Nature</option>
+            <option value="romantic">Romantic Getaway</option>
+            <option value="family">Family Friendly</option>
+            <option value="luxury">Luxury & Leisure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Number of Travellers</label>
+          <select id="numTravellers">
+            <option>Solo</option>
+            <option>Couple</option>
+            <option>Family (with kids)</option>
+            <option>Group of Friends</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Special Interests (optional)</label>
+        <textarea id="specialInterests" placeholder="e.g. photography, local food, boat rides, shopping..."></textarea>
+      </div>
+      <button class="btn-generate" onclick="generateItinerary()">✦ Generate My AI Itinerary</button>
+    </div>
+    <div class="ai-result" id="aiResult">
+      <div class="ai-result-title">Your Personalised Udaipur Itinerary</div>
+      <div class="ai-result-content" id="aiResultContent"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // Nav scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', scrollY > 60);
+  });
+
+  // Drag-to-scroll carousel
+  const carousel = document.getElementById('resortCarousel');
+  let isDown = false, startX, scrollLeft;
+  carousel.addEventListener('mousedown', e => { isDown = true; startX = e.pageX - carousel.offsetLeft; scrollLeft = carousel.scrollLeft; });
+  carousel.addEventListener('mouseleave', () => isDown = false);
+  carousel.addEventListener('mouseup', () => isDown = false);
+  carousel.addEventListener('mousemove', e => { if (!isDown) return; e.preventDefault(); const x = e.pageX - carousel.offsetLeft; carousel.scrollLeft = scrollLeft - (x - startX) * 1.5; });
+
+  // Modals
+  function openBooking() { document.getElementById('bookingModal').classList.add('open'); document.body.style.overflow = 'hidden'; return false; }
+  function closeBooking() { document.getElementById('bookingModal').classList.remove('open'); document.body.style.overflow = ''; }
+  function openItineraryModal() { document.getElementById('itineraryModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeItinerary() { document.getElementById('itineraryModal').classList.remove('open'); document.body.style.overflow = ''; }
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) { m.classList.remove('open'); document.body.style.overflow = ''; } }));
+
+  // AI Itinerary Generator
+  async function generateItinerary() {
+    const name = document.getElementById('travelerName').value || 'Traveller';
+    const days = document.getElementById('numDays').value;
+    const style = document.getElementById('travelStyle').value;
+    const travellers = document.getElementById('numTravellers').value;
+    const interests = document.getElementById('specialInterests').value;
+
+    const resultBox = document.getElementById('aiResult');
+    const resultContent = document.getElementById('aiResultContent');
+    resultBox.classList.add('visible');
+    resultContent.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div> Crafting your personalised itinerary...';
+
+    const prompt = `You are a luxury travel concierge for Meera Valley Resort in Udaipur, Rajasthan. 
+Create a detailed ${days}-day Udaipur travel itinerary for ${name}, a ${travellers} traveller with a ${style} travel style.
+${interests ? `Special interests: ${interests}.` : ''}
+
+Include:
+- Morning, afternoon, and evening activities each day
+- Mention Meera Valley Resort as the base (check-in on Day 1, check-out on last day)
+- Include top Udaipur attractions: City Palace, Lake Pichola, Sajjangarh, Saheliyon ki Bari, Fateh Sagar Lake, Jagdish Temple, local markets
+- Add food/dining recommendations (local Rajasthani cuisine)
+- Practical tips for each day
+
+Format clearly with Day 1, Day 2, etc. headings. Keep it warm, vivid, and inspiring. Max 400 words.`;
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await response.json();
+      const text = data.content?.map(b => b.text || '').join('') || 'Unable to generate itinerary. Please try again.';
+      resultContent.textContent = text;
+    } catch (err) {
+      resultContent.textContent = '✦ Sample Itinerary for ' + name + ' (' + days + ' Days, ' + style + ')\n\nDay 1 – Arrival & Lakeside Magic\nCheck in to Meera Valley Resort. Freshen up and head to Lake Pichola for a sunset boat ride. Enjoy welcome dinner on the resort terrace with valley views.\n\nDay 2 – Palaces & Heritage\nMorning: City Palace Museum and Jagdish Temple. Afternoon: Saheliyon ki Bari garden. Evening: Stroll through Hathi Pol bazaar for local handicrafts and try dal baati churma.\n\nDay 3 – Hills & Culture\nSunrise visit to Sajjangarh Monsoon Palace. Shilpgram craft village. Evening: Dharohar folk dance show at Bagore ki Haveli. Depart with memories of a lifetime.';
+    }
+  }
+// ===== CHATBOT =====
+function addMessage(msg, type, isId = null) {
+  let div = document.createElement("div");
+  div.className = type === "user" ? "chat-msg-user" : "chat-msg-bot";
+  if (isId) div.id = isId;
+  if (type === "user") { div.textContent = msg; } else { div.innerHTML = msg; }
+  document.getElementById("chatMessages").appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+function scrollToBottom() {
+    let chatBox = document.getElementById("chatMessages");
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Custom Typewriter that protects your PDF HTML links!
+/*function typeWriter(element, text, speed) {
+  let i = 0;
+  let isTag = false;
+  let currentHTML = "";
+
+  function type() {
+    if (i < text.length) {
+      let char = text.charAt(i);
+      
+      if (char === '<') isTag = true;
+      currentHTML += char;
+      element.innerHTML = currentHTML;
+      if (char === '>') isTag = false;
+
+      i++;
+      let currentSpeed = isTag ? 0 : speed; 
+      setTimeout(type, currentSpeed);
+      scrollToBottom();
+    }
+  }
+  type();
+}*/
+
+function sendMessage() {
+  let input = document.getElementById("chatInput");
+  let msg = input.value.trim();
+  if (!msg) return;
+
+  // 1. Show user message
+  addMessage(msg, "user");
+  input.value = "";
+
+  // 2. Show the animated "Thinking..." indicator
+  let loadingHTML = `<span style="color: #8A7A60; font-style: italic;">Thinking </span>
+                     <div class="loading-dots" style="display:inline-flex; align-items:baseline; margin-left:2px;">
+                       <span style="background: #8A7A60; width: 4px; height: 4px;"></span>
+                       <span style="background: #8A7A60; width: 4px; height: 4px;"></span>
+                       <span style="background: #8A7A60; width: 4px; height: 4px;"></span>
+                     </div>`;
+  let loadingDiv = addMessage(loadingHTML, "bot", "loading-msg");
+
+  // 3. Fetch from Python (Now reading the stream!)
+  fetch("/chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({message: msg})
+  })
+  .then(async response => {
+    // 4. Remove the Thinking indicator
+    loadingDiv.remove();
+    
+    // 5. Create an EMPTY bot box
+    let botDiv = addMessage("", "bot");
+    
+    // 6. Read the stream chunk by chunk
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = "";
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      // Decode the chunk from the server and append it
+      const chunk = decoder.decode(value, {stream: true});
+      fullText += chunk;
+      
+      // Update the chat box and scroll down
+      botDiv.innerHTML = fullText; 
+      scrollToBottom();
+    }
+    
+    // 7. Speak only after the full message is done streaming
+    speak(botDiv.innerText);
+  })
+  .catch(err => {
+      loadingDiv.remove();
+      addMessage("Connection error. Please try again.", "bot");
+  });
+}
+// ===== VOICE OUTPUT =====
+function speak(text) {
+  let speech = new SpeechSynthesisUtterance(text);
+  
+  speech.lang = "en-IN";
+  window.speechSynthesis.speak(speech);
+}
+
+// ===== VOICE INPUT =====
+function startVoice() {
+  let recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-IN";
+
+  recognition.onresult = function(event) {
+    let text = event.results[0][0].transcript;
+    document.getElementById("chatInput").value = text;
+    sendMessage();
+  };
+
+  recognition.start();
+}
+</script>
+<!-- CHATBOT UI -->
+<style>
+  #chatContainer {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 360px;
+    background: #0f0b06;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 18px;
+    display: flex; flex-direction: column;
+    z-index: 9999;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.08);
+    font-family: 'Jost', sans-serif;
+    overflow: hidden;
+  }
+  #chatHeader {
+    background: linear-gradient(135deg, #1e1408 0%, #2a1c0a 100%);
+    border-bottom: 1px solid rgba(201,168,76,0.25);
+    padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer;
+  }
+  #chatHeader:hover { background: linear-gradient(135deg, #251a0d 0%, #311f0c 100%); }
+  .chat-header-left { display: flex; align-items: center; gap: 10px; }
+  .chat-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #C9A84C, #8a6e28);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .chat-header-title { font-size: 13px; font-weight: 600; color: #C9A84C; letter-spacing: 0.5px; }
+  .chat-header-sub { font-size: 10px; color: rgba(201,168,76,0.55); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+  .chat-toggle-btn {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.25);
+    display: flex; align-items: center; justify-content: center;
+    color: #C9A84C; font-size: 16px; line-height: 1;
+  }
+  #chatMessages {
+    height: 280px; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    scrollbar-width: thin; scrollbar-color: rgba(201,168,76,0.3) transparent;
+  }
+  #chatMessages::-webkit-scrollbar { width: 3px; }
+  #chatMessages::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 4px; }
+  .chat-msg-user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #C9A84C, #a8872e);
+    color: #1A1208;
+    padding: 9px 14px;
+    border-radius: 14px 14px 4px 14px;
+    font-size: 13px; line-height: 1.5;
+    max-width: 80%;
+    font-weight: 500;
+  }
+  .chat-msg-bot {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: #F7F0E3;
+    padding: 9px 14px;
+    border-radius: 14px 14px 14px 4px;
+    font-size: 13px; line-height: 1.6;
+    max-width: 85%;
+  }
+  #chatInputRow {
+    display: flex; align-items: center;
+    border-top: 1px solid rgba(201,168,76,0.18);
+    padding: 10px 12px; gap: 8px;
+    background: rgba(0,0,0,0.2);
+  }
+  #chatInput {
+    flex: 1; padding: 9px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    color: #F7F0E3; font-family: 'Jost', sans-serif; font-size: 13px;
+    outline: none; transition: border-color 0.2s;
+  }
+  #chatInput:focus { border-color: rgba(201,168,76,0.5); }
+  #chatInput::placeholder { color: rgba(255,255,255,0.25); }
+  .chat-send-btn, .chat-voice-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; font-size: 14px;
+    transition: transform 0.15s, opacity 0.2s;
+  }
+  .chat-send-btn { background: #C9A84C; color: #1A1208; }
+  .chat-voice-btn { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); color: #C9A84C; }
+  .chat-send-btn:hover, .chat-voice-btn:hover { transform: scale(1.08); opacity: 0.9; }
+</style>
+
+<div id="chatContainer">
+  <div id="chatHeader" onclick="toggleChat()">
+    <div class="chat-header-left">
+      <div class="chat-avatar">✦</div>
+      <div>
+        <div class="chat-header-title">AI Concierge</div>
+        <div class="chat-header-sub">Meera Valley · Online</div>
+      </div>
+    </div>
+    <div class="chat-toggle-btn">
+      <span id="chatToggleIcon">−</span>
+    </div>
+  </div>
+
+  <div id="chatBody" style="display:flex; flex-direction:column;">
+    <div id="chatMessages"></div>
+    <div id="chatInputRow">
+      <input id="chatInput" placeholder="Ask something..." onkeydown="if(event.key==='Enter') sendMessage()">
+      <button class="chat-send-btn" onclick="sendMessage()">➤</button>
+      <button class="chat-voice-btn" onclick="startVoice()">🎤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Add this small function anywhere in your script tags
+  function toggleChat() {
+    let body = document.getElementById("chatBody");
+    let icon = document.getElementById("chatToggleIcon");
+    if (body.style.display === "none") {
+      body.style.display = "flex";
+      icon.innerText = "−"; // Show minus icon
+    } else {
+      body.style.display = "none";
+      icon.innerText = "+"; // Show plus icon
+    }
+  }
+</script>
+
+<!-- FOOTER -->
+<footer>
+  <h2>MEERA VALLEY RESORT</h2>
+
+    <div class="footer-links">
+        <a href="#about">ABOUT</a>
+        <a href="#rooms">ROOMS</a>
+        <a href="#gallery">GALLERY</a>
+        <a href="#attractions">ATTRACTIONS</a>
+        <a href="#contact">CONTACT</a>
+        <a href="/reviews">REVIEWS</a>
+    </div>
+    <p class="footer-copy">© 2025 Meera Valley Resort · AI in Tourism Major Project</p>
+</footer>
+
+</body>
+</html>
