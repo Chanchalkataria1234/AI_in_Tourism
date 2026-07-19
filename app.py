@@ -282,14 +282,25 @@ try:
     )
 
     udaipur_retriever = udaipur_vectorstore.as_retriever(search_kwargs={"k": 3})
-
-    llm = OllamaLLM(model="phi3")
+    ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    llm = OllamaLLM(model="phi3", base_url=ollama_base_url)
 
 except Exception as e:
     print("RAG ERROR:", e)
     resort_retriever = None
     udaipur_retriever = None
     llm = None
+
+def is_ollama_online():
+    if llm is None:
+        return False
+    try:
+        import urllib.request
+        url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        response = urllib.request.urlopen(url, timeout=1)
+        return response.getcode() == 200 or response.status == 200
+    except Exception:
+        return False
 
 # ==============================
 # 🎭 AI PROMPT TEMPLATE
@@ -844,7 +855,10 @@ Please enter the 6-digit OTP to continue.
     intent = detect_intent(msg)
 
     if intent == "greeting":
-        return Response("Hello! Welcome to Meera Valley Resort 😊 How can I help you today?", mimetype='text/plain')
+        greeting_text = "Hello! Welcome to Meera Valley Resort 😊 How can I help you today?"
+        if not is_ollama_online():
+            greeting_text += "<br><br><span style='color: #8A7A60; font-size: 11px; font-style: italic;'>⚠️ Note: The local AI assistant (Ollama) is currently offline. You can still use the booking system, generate quotes, or leave reviews.</span>"
+        return Response(greeting_text, mimetype='text/plain')
 
     if intent == "price":
         return Response("Our Double Occupancy rooms start at Rs 2000 per night, and Triple Occupancy is Rs 2300 per night. Would you like to start a booking?", mimetype='text/plain')
@@ -855,7 +869,7 @@ Please enter the 6-digit OTP to continue.
 
     # --- 3. FALLBACK TO LOCAL AI RAG (STREAMING ENABLED) ---
     if intent == "general":
-        if not llm:
+        if not is_ollama_online():
             return Response("My knowledge base is offline right now. Please check the server console.", mimetype='text/plain')
         
         context = get_resort_context(msg)
@@ -875,6 +889,9 @@ Please enter the 6-digit OTP to continue.
 
     return Response("I am not sure how to respond to that. Could you rephrase?", mimetype='text/plain')
 
+@app.route('/chat-status', methods=['GET'])
+def chat_status():
+    return jsonify({"ollama_online": is_ollama_online()})
 
 # ==============================
 # 💳 PAYMENT WEBHOOK VERIFY
@@ -995,6 +1012,9 @@ QUESTION:
 ANSWER:
 """
     
+    if not is_ollama_online():
+        return Response("The itinerary planner is currently offline because the AI service (Ollama) is not running. Please check the server console.", mimetype='text/plain')
+
     try:
         # Stream the response back just like the main chat!
         def generate_stream():

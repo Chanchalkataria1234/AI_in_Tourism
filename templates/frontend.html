@@ -932,6 +932,22 @@ function startVoice() {
 
   recognition.start();
 }
+
+// ===== INITIALIZE GREETING =====
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("/chat-status")
+    .then(res => res.json())
+    .then(data => {
+      let welcome = "Hello! Welcome to Meera Valley Resort 😊 How can I help you today?";
+      if (!data.ollama_online) {
+        welcome += "<br><br><span style='color: #8A7A60; font-size: 11px; font-style: italic;'>⚠️ Note: The local AI assistant (Ollama) is currently offline. You can still use the booking system, generate quotes, or leave reviews.</span>";
+      }
+      addMessage(welcome, "bot");
+    })
+    .catch(() => {
+      addMessage("Hello! Welcome to Meera Valley Resort 😊 How can I help you today?", "bot");
+    });
+});
 </script>
 <!-- CHATBOT UI -->
 <style>
