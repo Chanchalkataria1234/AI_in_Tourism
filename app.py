@@ -14,7 +14,8 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 
-load_dotenv()
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 RUNNING_IN_CLOUD = os.getenv("RUNNING_IN_CLOUD", "false").lower() == "true"
 SECRET_KEY = os.getenv("SECRET_KEY")
 
