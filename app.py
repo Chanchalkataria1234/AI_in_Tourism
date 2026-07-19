@@ -8,18 +8,23 @@ import random
 from flask import session
 from flask import session, redirect, url_for
 
-# --- RAG ---
-from langchain_ollama import OllamaLLM
-from langchain_community.document_loaders import TextLoader
-from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
+# --- Base Imports ---
 from dotenv import load_dotenv
 from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
+
 load_dotenv()
+RUNNING_IN_CLOUD = os.getenv("RUNNING_IN_CLOUD", "false").lower() == "true"
 SECRET_KEY = os.getenv("SECRET_KEY")
+
+# --- Conditional RAG Imports ---
+if not RUNNING_IN_CLOUD:
+    from langchain_ollama import OllamaLLM
+    from langchain_community.document_loaders import TextLoader
+    from langchain_community.vectorstores import Chroma
+    from langchain_huggingface import HuggingFaceEmbeddings
+    from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -251,53 +256,61 @@ def generate_quotation_pdf(guests, days, meal_choice, occupancy_choice):
 # ==============================
 # 🤖 RAG SETUP (DUAL SYSTEM)
 # ==============================
-try:
-    splitter = RecursiveCharacterTextSplitter(
-    chunk_size=120,
-    chunk_overlap=30
-    )
+resort_retriever = None
+udaipur_retriever = None
+llm = None
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
+if not RUNNING_IN_CLOUD:
+    try:
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=120,
+            chunk_overlap=30
+        )
 
-    # -------- RESORT RAG --------
-    resort_loader = TextLoader("resort_knowledge.txt")
-    resort_docs = resort_loader.load()
-    resort_texts = splitter.split_documents(resort_docs)
+        embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
 
-    resort_vectorstore = Chroma.from_documents(
-        resort_texts, embeddings, persist_directory="./chroma_resort"
-    )
+        # -------- RESORT RAG --------
+        resort_loader = TextLoader("resort_knowledge.txt")
+        resort_docs = resort_loader.load()
+        resort_texts = splitter.split_documents(resort_docs)
 
-    resort_retriever = resort_vectorstore.as_retriever(search_kwargs={"k": 3})
+        resort_vectorstore = Chroma.from_documents(
+            resort_texts, embeddings, persist_directory="./chroma_resort"
+        )
 
-    # -------- UDAIPUR RAG --------
-    udaipur_loader = TextLoader("udaipur_knowledge.txt")
-    udaipur_docs = udaipur_loader.load()
-    udaipur_texts = splitter.split_documents(udaipur_docs)
+        resort_retriever = resort_vectorstore.as_retriever(search_kwargs={"k": 3})
 
-    udaipur_vectorstore = Chroma.from_documents(
-        udaipur_texts, embeddings, persist_directory="./chroma_udaipur"
-    )
+        # -------- UDAIPUR RAG --------
+        udaipur_loader = TextLoader("udaipur_knowledge.txt")
+        udaipur_docs = udaipur_loader.load()
+        udaipur_texts = splitter.split_documents(udaipur_docs)
 
-    udaipur_retriever = udaipur_vectorstore.as_retriever(search_kwargs={"k": 3})
-    ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    llm = OllamaLLM(model="phi3", base_url=ollama_base_url)
+        udaipur_vectorstore = Chroma.from_documents(
+            udaipur_texts, embeddings, persist_directory="./chroma_udaipur"
+        )
 
-except Exception as e:
-    print("RAG ERROR:", e)
-    resort_retriever = None
-    udaipur_retriever = None
-    llm = None
+        udaipur_retriever = udaipur_vectorstore.as_retriever(search_kwargs={"k": 3})
+        ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        llm = OllamaLLM(model="phi3", base_url=ollama_base_url)
+
+    except Exception as e:
+        print("RAG ERROR:", e)
+        resort_retriever = None
+        udaipur_retriever = None
+        llm = None
 
 def is_ollama_online():
-    if llm is None:
+    url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434" if not RUNNING_IN_CLOUD else "")
+    if RUNNING_IN_CLOUD and not url:
+        return False
+    if not RUNNING_IN_CLOUD and llm is None:
         return False
     try:
         import urllib.request
-        url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        response = urllib.request.urlopen(url, timeout=1)
+        ping_url = f"{url}/chat-status" if RUNNING_IN_CLOUD else url
+        response = urllib.request.urlopen(ping_url, timeout=1.5)
         return response.getcode() == 200 or response.status == 200
     except Exception:
         return False
@@ -867,25 +880,38 @@ Please enter the 6-digit OTP to continue.
         session["step"] = "name"
         return Response("I'd be happy to help you book a stay. To get started, please enter your name.", mimetype='text/plain')
 
-    # --- 3. FALLBACK TO LOCAL AI RAG (STREAMING ENABLED) ---
+    # --- 3. FALLBACK TO LOCAL AI RAG (STREAMING ENABLED / CLOUD PROXY) ---
     if intent == "general":
         if not is_ollama_online():
             return Response("My knowledge base is offline right now. Please check the server console.", mimetype='text/plain')
         
-        context = get_resort_context(msg)
-        prompt = CONCIERGE_TEMPLATE.format(context=context, question=msg)
-        
-        try:
-            # The Generator function that streams words as they are created
-            def generate_stream():
-                for chunk in llm.stream(prompt):
-                    yield chunk
+        if RUNNING_IN_CLOUD:
+            try:
+                import requests
+                tunnel_url = os.getenv("OLLAMA_BASE_URL")
+                resp = requests.post(f"{tunnel_url}/chat", json={"message": msg}, stream=True, timeout=15)
+                def generate_proxy():
+                    for chunk in resp.iter_content(chunk_size=512):
+                        yield chunk
+                return Response(stream_with_context(generate_proxy()), mimetype='text/plain')
+            except Exception as e:
+                print("Proxy Error:", e)
+                return Response("I'm having trouble connecting to the AI assistant right now.", mimetype='text/plain')
+        else:
+            context = get_resort_context(msg)
+            prompt = CONCIERGE_TEMPLATE.format(context=context, question=msg)
             
-            return Response(stream_with_context(generate_stream()), mimetype='text/plain')
-            
-        except Exception as e:
-            print("LLM Generation Error:", e)
-            return Response("I'm having a little trouble thinking right now. Please try asking again.", mimetype='text/plain')
+            try:
+                # The Generator function that streams words as they are created
+                def generate_stream():
+                    for chunk in llm.stream(prompt):
+                        yield chunk
+                
+                return Response(stream_with_context(generate_stream()), mimetype='text/plain')
+                
+            except Exception as e:
+                print("LLM Generation Error:", e)
+                return Response("I'm having a little trouble thinking right now. Please try asking again.", mimetype='text/plain')
 
     return Response("I am not sure how to respond to that. Could you rephrase?", mimetype='text/plain')
 
@@ -1014,6 +1040,19 @@ ANSWER:
     
     if not is_ollama_online():
         return Response("The itinerary planner is currently offline because the AI service (Ollama) is not running. Please check the server console.", mimetype='text/plain')
+
+    if RUNNING_IN_CLOUD:
+        try:
+            import requests
+            tunnel_url = os.getenv("OLLAMA_BASE_URL")
+            resp = requests.post(f"{tunnel_url}/itinerary-chat", json={"message": msg}, stream=True, timeout=15)
+            def generate_proxy():
+                for chunk in resp.iter_content(chunk_size=512):
+                    yield chunk
+            return Response(stream_with_context(generate_proxy()), mimetype='text/plain')
+        except Exception as e:
+            print("Proxy Itinerary Error:", e)
+            return Response("The itinerary planner is currently offline.", mimetype='text/plain')
 
     try:
         # Stream the response back just like the main chat!
