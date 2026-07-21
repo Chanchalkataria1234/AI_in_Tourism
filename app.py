@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 import smtplib
 import socket
+import requests
 from email.mime.text import MIMEText
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -413,65 +414,124 @@ class IPv4ForcedSMTP:
         socket.getaddrinfo = self.old_getaddrinfo
 
 def send_email_detailed(to_email, subject, body):
-    try:
-        sender_email = os.getenv("SMTP_EMAIL", SMTP_EMAIL)
-        sender_password = os.getenv("SMTP_PASSWORD", SMTP_PASSWORD)
+    sender_email = os.getenv("SMTP_EMAIL", SMTP_EMAIL) or "katariachanchal708@gmail.com"
 
-        if not sender_email or not sender_password:
-            msg = "SMTP_EMAIL or SMTP_PASSWORD is not configured in Environment Variables."
-            print("EMAIL ERROR:", msg)
-            return False, msg
+    if not to_email:
+        msg = "Recipient email address is missing."
+        print("EMAIL ERROR:", msg)
+        return False, msg
 
-        if not to_email:
-            msg = "Recipient email address is missing."
-            print("EMAIL ERROR:", msg)
-            return False, msg
+    # Strategy 1: Brevo HTTP API (Port 443 - Never blocked on Render)
+    brevo_key = os.getenv("BREVO_API_KEY")
+    if brevo_key:
+        try:
+            print(f"Sending email to {to_email} via Brevo HTTP API...")
+            res = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": brevo_key,
+                    "Content-Type": "application/json",
+                    "accept": "application/json"
+                },
+                json={
+                    "sender": {"name": "Meera Valley Resort", "email": sender_email},
+                    "to": [{"email": to_email}],
+                    "subject": subject,
+                    "textContent": body
+                },
+                timeout=10
+            )
+            if res.status_code in (200, 201):
+                print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Brevo HTTP API")
+                return True, "Success via Brevo HTTP API"
+            else:
+                err_msg = f"Brevo API error ({res.status_code}): {res.text}"
+                print(err_msg)
+                return False, err_msg
+        except Exception as e:
+            err_msg = f"Brevo HTTP API exception: {str(e)}"
+            print(err_msg)
+            return False, err_msg
 
-        print(f"Attempting to send email to: {to_email} via {sender_email}")
+    # Strategy 2: Resend HTTP API (Port 443 - Never blocked on Render)
+    resend_key = os.getenv("RESEND_API_KEY")
+    if resend_key:
+        try:
+            print(f"Sending email to {to_email} via Resend HTTP API...")
+            res = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "from": "Meera Valley Resort <onboarding@resend.dev>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "text": body
+                },
+                timeout=10
+            )
+            if res.status_code in (200, 201):
+                print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Resend HTTP API")
+                return True, "Success via Resend HTTP API"
+            else:
+                err_msg = f"Resend API error ({res.status_code}): {res.text}"
+                print(err_msg)
+                return False, err_msg
+        except Exception as e:
+            err_msg = f"Resend HTTP API exception: {str(e)}"
+            print(err_msg)
+            return False, err_msg
 
-        msg = MIMEText(body)
-        msg["Subject"] = subject
-        msg["From"] = sender_email
-        msg["To"] = to_email
+    # Strategy 3: SMTP Fallback (Port 587/465 - May be blocked by Cloud Host)
+    sender_password = os.getenv("SMTP_PASSWORD", SMTP_PASSWORD)
 
-        errors = []
+    if not sender_email or not sender_password:
+        msg = "SMTP_EMAIL or SMTP_PASSWORD is not configured in Environment Variables."
+        print("EMAIL ERROR:", msg)
+        return False, msg
 
-        with IPv4ForcedSMTP():
-            # Strategy 1: Try Port 587 (TLS)
-            try:
-                print("Connecting to smtp.gmail.com:587 (TLS, IPv4 forced)...")
-                server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-                server.starttls()
-                server.login(sender_email, sender_password)
-                server.send_message(msg)
-                server.quit()
-                print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 587 (TLS)")
-                return True, "Success"
-            except Exception as err587:
-                err_str = f"Port 587 (TLS) failed: {err587}"
-                print(err_str)
-                errors.append(err_str)
+    print(f"Attempting to send email to: {to_email} via SMTP ({sender_email})")
 
-            # Strategy 2: Try Port 465 (SSL)
-            try:
-                print("Connecting to smtp.gmail.com:465 (SSL, IPv4 forced)...")
-                server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-                server.login(sender_email, sender_password)
-                server.send_message(msg)
-                server.quit()
-                print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 465 (SSL)")
-                return True, "Success"
-            except Exception as err465:
-                err_str = f"Port 465 (SSL) failed: {err465}"
-                print(err_str)
-                errors.append(err_str)
+    msg_mime = MIMEText(body)
+    msg_mime["Subject"] = subject
+    msg_mime["From"] = sender_email
+    msg_mime["To"] = to_email
 
-        return False, " | ".join(errors)
+    errors = []
 
-    except Exception as e:
-        err_str = f"EMAIL ERROR sending to {to_email}: {str(e)}"
-        print(err_str)
-        return False, err_str
+    with IPv4ForcedSMTP():
+        # Port 587 (TLS)
+        try:
+            print("Connecting to smtp.gmail.com:587 (TLS, IPv4 forced)...")
+            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg_mime)
+            server.quit()
+            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 587 (TLS)")
+            return True, "Success"
+        except Exception as err587:
+            err_str = f"Port 587 (TLS) failed: {err587}"
+            print(err_str)
+            errors.append(err_str)
+
+        # Port 465 (SSL)
+        try:
+            print("Connecting to smtp.gmail.com:465 (SSL, IPv4 forced)...")
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+            server.login(sender_email, sender_password)
+            server.send_message(msg_mime)
+            server.quit()
+            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 465 (SSL)")
+            return True, "Success"
+        except Exception as err465:
+            err_str = f"Port 465 (SSL) failed: {err465}"
+            print(err_str)
+            errors.append(err_str)
+
+    return False, " | ".join(errors)
 
 def send_email(to_email, subject, body):
     success, _ = send_email_detailed(to_email, subject, body)
@@ -482,20 +542,66 @@ def test_email_route():
     to = request.args.get('to', os.getenv("ADMIN_EMAIL", ADMIN_EMAIL))
     sender_email = os.getenv("SMTP_EMAIL", SMTP_EMAIL)
     sender_password = os.getenv("SMTP_PASSWORD", SMTP_PASSWORD)
+    brevo_key = os.getenv("BREVO_API_KEY")
+    resend_key = os.getenv("RESEND_API_KEY")
 
     log_output = [
         "<h2>Email Diagnostic Tool</h2>",
+        f"<b>BREVO_API_KEY:</b> {'Configured' if brevo_key else '<i>NOT SET</i>'}",
+        f"<b>RESEND_API_KEY:</b> {'Configured' if resend_key else '<i>NOT SET</i>'}",
         f"<b>SMTP_EMAIL:</b> {sender_email or '<i>NOT SET</i>'}",
         f"<b>SMTP_PASSWORD:</b> {'Configured (' + str(len(sender_password)) + ' chars)' if sender_password else '<i>NOT SET</i>'}",
         f"<b>Recipient Email:</b> {to or '<i>NOT SET</i>'}<br><hr>"
     ]
 
-    if not sender_email or not sender_password:
-        log_output.append("<b style='color:red;'>FAILED: SMTP_EMAIL or SMTP_PASSWORD is missing in Environment Variables!</b>")
-        return "<br>".join(log_output), 400
-
     if not to:
         log_output.append("<b style='color:red;'>FAILED: No recipient email provided. Pass ?to=your_email@domain.com in URL.</b>")
+        return "<br>".join(log_output), 400
+
+    # Test Brevo API if available
+    if brevo_key:
+        try:
+            log_output.append("Attempting send via <b>Brevo HTTP API</b> (Port 443)...")
+            res = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={"api-key": brevo_key, "Content-Type": "application/json", "accept": "application/json"},
+                json={
+                    "sender": {"name": "Meera Valley Resort", "email": sender_email or "katariachanchal708@gmail.com"},
+                    "to": [{"email": to}],
+                    "subject": "Test Email - Meera Valley Resort",
+                    "textContent": "Test email via Brevo HTTP API"
+                },
+                timeout=10
+            )
+            if res.status_code in (200, 201):
+                log_output.append("<b style='color:green;'>SUCCESS: Test email delivered via Brevo HTTP API!</b>")
+                return "<br>".join(log_output)
+            else:
+                log_output.append(f"<span style='color:red;'>Brevo API failed ({res.status_code}): {res.text}</span><br>")
+        except Exception as eb:
+            log_output.append(f"<span style='color:red;'>Brevo API exception: {str(eb)}</span><br>")
+
+    # Test Resend API if available
+    if resend_key:
+        try:
+            log_output.append("Attempting send via <b>Resend HTTP API</b> (Port 443)...")
+            res = requests.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
+                json={"from": "Meera Valley Resort <onboarding@resend.dev>", "to": [to], "subject": "Test Email", "text": "Test email via Resend API"},
+                timeout=10
+            )
+            if res.status_code in (200, 201):
+                log_output.append("<b style='color:green;'>SUCCESS: Test email delivered via Resend HTTP API!</b>")
+                return "<br>".join(log_output)
+            else:
+                log_output.append(f"<span style='color:red;'>Resend API failed ({res.status_code}): {res.text}</span><br>")
+        except Exception as er:
+            log_output.append(f"<span style='color:red;'>Resend API exception: {str(er)}</span><br>")
+
+    # Test SMTP
+    if not sender_email or not sender_password:
+        log_output.append("<b style='color:red;'>FAILED: No HTTP API key set and SMTP credentials missing!</b>")
         return "<br>".join(log_output), 400
 
     msg = MIMEText("This is a test email sent from your deployed Meera Valley Resort application.")
@@ -504,34 +610,30 @@ def test_email_route():
     msg["To"] = to
 
     with IPv4ForcedSMTP():
-        # Test Port 587 (TLS)
         try:
-            log_output.append("1. Attempting connection to <b>smtp.gmail.com:587</b> (TLS, IPv4 forced)...")
+            log_output.append("Attempting connection to <b>smtp.gmail.com:587</b> (TLS, IPv4 forced)...")
             server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
             server.starttls()
-            log_output.append("   - TLS connection established. Logging in...")
             server.login(sender_email, sender_password)
             server.send_message(msg)
             server.quit()
-            log_output.append("<b style='color:green;'>SUCCESS: Test email successfully delivered via Port 587 (TLS)!</b>")
+            log_output.append("<b style='color:green;'>SUCCESS: Test email delivered via Port 587 (TLS)!</b>")
             return "<br>".join(log_output)
         except Exception as e587:
-            log_output.append(f"<span style='color:orange;'>   - Port 587 failed: {str(e587)}</span>")
+            log_output.append(f"<span style='color:orange;'>Port 587 failed: {str(e587)}</span><br>")
 
-        # Test Port 465 (SSL)
         try:
-            log_output.append("<br>2. Attempting connection to <b>smtp.gmail.com:465</b> (SSL, IPv4 forced)...")
+            log_output.append("Attempting connection to <b>smtp.gmail.com:465</b> (SSL, IPv4 forced)...")
             server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-            log_output.append("   - SSL connection established. Logging in...")
             server.login(sender_email, sender_password)
             server.send_message(msg)
             server.quit()
-            log_output.append("<b style='color:green;'>SUCCESS: Test email successfully delivered via Port 465 (SSL)!</b>")
+            log_output.append("<b style='color:green;'>SUCCESS: Test email delivered via Port 465 (SSL)!</b>")
             return "<br>".join(log_output)
         except Exception as e465:
-            log_output.append(f"<span style='color:red;'>   - Port 465 failed: {str(e465)}</span>")
+            log_output.append(f"<span style='color:red;'>Port 465 failed: {str(e465)}</span>")
 
-    log_output.append("<br><b style='color:red;'>FAILED: Both Port 587 and 465 failed. Check error details above.</b>")
+    log_output.append("<br><b style='color:red;'>FAILED: SMTP ports 587 & 465 timed out (blocked by cloud host firewall). Please set BREVO_API_KEY or RESEND_API_KEY in Render environment variables.</b>")
     return "<br>".join(log_output), 500
 
 def save_booking(session):
