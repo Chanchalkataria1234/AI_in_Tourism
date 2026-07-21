@@ -422,7 +422,8 @@ def send_email_detailed(to_email, subject, body):
         return False, msg
 
     # Strategy 1: Brevo HTTP API (Port 443 - Never blocked on Render)
-    brevo_key = os.getenv("BREVO_API_KEY")
+    raw_brevo_key = os.getenv("BREVO_API_KEY", "")
+    brevo_key = raw_brevo_key.strip().strip('"').strip("'") if raw_brevo_key else None
     if brevo_key:
         try:
             print(f"Sending email to {to_email} via Brevo HTTP API...")
@@ -454,7 +455,8 @@ def send_email_detailed(to_email, subject, body):
             return False, err_msg
 
     # Strategy 2: Resend HTTP API (Port 443 - Never blocked on Render)
-    resend_key = os.getenv("RESEND_API_KEY")
+    raw_resend_key = os.getenv("RESEND_API_KEY", "")
+    resend_key = raw_resend_key.strip().strip('"').strip("'") if raw_resend_key else None
     if resend_key:
         try:
             print(f"Sending email to {to_email} via Resend HTTP API...")
