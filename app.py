@@ -396,16 +396,21 @@ def parse_date(date_str):
     except:
         return datetime.strptime(date_str, "%d-%m-%Y")
 
-def get_smtp_ipv4(hostname="smtp.gmail.com"):
-    try:
-        addrs = socket.getaddrinfo(hostname, None, socket.AF_INET, socket.SOCK_STREAM)
-        for addr in addrs:
-            ip = addr[4][0]
-            if ip:
-                return ip
-    except Exception as e:
-        print(f"IPv4 resolution warning for {hostname}: {e}")
-    return hostname
+class IPv4ForcedSMTP:
+    def __enter__(self):
+        self.old_getaddrinfo = socket.getaddrinfo
+        def custom_getaddrinfo(*args, **kwargs):
+            args_list = list(args)
+            if len(args_list) > 2:
+                args_list[2] = socket.AF_INET
+            else:
+                kwargs['family'] = socket.AF_INET
+            return self.old_getaddrinfo(*args_list, **kwargs)
+        socket.getaddrinfo = custom_getaddrinfo
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        socket.getaddrinfo = self.old_getaddrinfo
 
 def send_email(to_email, subject, body):
     try:
@@ -427,44 +432,31 @@ def send_email(to_email, subject, body):
         msg["From"] = sender_email
         msg["To"] = to_email
 
-        smtp_ip = get_smtp_ipv4("smtp.gmail.com")
-        print(f"Resolved Gmail SMTP IPv4 address: {smtp_ip}")
+        with IPv4ForcedSMTP():
+            # Strategy 1: Try Port 587 (TLS)
+            try:
+                print("Connecting to smtp.gmail.com:587 (TLS, IPv4 forced)...")
+                server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+                server.quit()
+                print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 587 (TLS)")
+                return True
+            except Exception as err587:
+                print(f"Port 587 (TLS) failed: {err587}. Retrying Port 465 (SSL)...")
 
-        # Strategy 1: Try IPv4 on Port 587 (TLS)
-        try:
-            print("Connecting via IPv4 Port 587 (TLS)...")
-            server = smtplib.SMTP(smtp_ip, 587, timeout=10)
-            server.starttls(server_hostname="smtp.gmail.com")
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-            server.quit()
-            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 587 (TLS)")
-            return True
-        except Exception as err587:
-            print(f"Port 587 (TLS) failed: {err587}. Retrying with Port 465 (SSL)...")
-
-        # Strategy 2: Try IPv4 on Port 465 (SSL)
-        try:
-            print("Connecting via IPv4 Port 465 (SSL)...")
-            server = smtplib.SMTP_SSL(smtp_ip, 465, timeout=10, server_hostname="smtp.gmail.com")
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-            server.quit()
-            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 465 (SSL)")
-            return True
-        except Exception as err465:
-            print(f"Port 465 (SSL) failed: {err465}. Retrying with hostname fallback...")
-
-        # Strategy 3: Direct Hostname Fallback
-        try:
-            server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-            server.quit()
-            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Hostname fallback")
-            return True
-        except Exception as err_fallback:
-            print(f"Hostname fallback failed: {err_fallback}")
+            # Strategy 2: Try Port 465 (SSL)
+            try:
+                print("Connecting to smtp.gmail.com:465 (SSL, IPv4 forced)...")
+                server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+                server.quit()
+                print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 465 (SSL)")
+                return True
+            except Exception as err465:
+                print(f"Port 465 (SSL) failed: {err465}")
 
         return False
 
@@ -493,40 +485,38 @@ def test_email_route():
         log_output.append("<b style='color:red;'>FAILED: No recipient email provided. Pass ?to=your_email@domain.com in URL.</b>")
         return "<br>".join(log_output), 400
 
-    smtp_ip = get_smtp_ipv4("smtp.gmail.com")
-    log_output.append(f"<b>Resolved Gmail IPv4 Address:</b> {smtp_ip}<br>")
-
     msg = MIMEText("This is a test email sent from your deployed Meera Valley Resort application.")
     msg["Subject"] = "Test Email - Meera Valley Resort"
     msg["From"] = sender_email
     msg["To"] = to
 
-    # Test Port 587 (TLS)
-    try:
-        log_output.append("1. Attempting IPv4 connection to <b>smtp.gmail.com:587</b> (TLS)...")
-        server = smtplib.SMTP(smtp_ip, 587, timeout=10)
-        server.starttls(server_hostname="smtp.gmail.com")
-        log_output.append("   - TLS connection established. Logging in...")
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
-        server.quit()
-        log_output.append("<b style='color:green;'>SUCCESS: Test email successfully delivered via Port 587 (TLS)!</b>")
-        return "<br>".join(log_output)
-    except Exception as e587:
-        log_output.append(f"<span style='color:orange;'>   - Port 587 failed: {str(e587)}</span>")
+    with IPv4ForcedSMTP():
+        # Test Port 587 (TLS)
+        try:
+            log_output.append("1. Attempting connection to <b>smtp.gmail.com:587</b> (TLS, IPv4 forced)...")
+            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+            server.starttls()
+            log_output.append("   - TLS connection established. Logging in...")
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+            server.quit()
+            log_output.append("<b style='color:green;'>SUCCESS: Test email successfully delivered via Port 587 (TLS)!</b>")
+            return "<br>".join(log_output)
+        except Exception as e587:
+            log_output.append(f"<span style='color:orange;'>   - Port 587 failed: {str(e587)}</span>")
 
-    # Test Port 465 (SSL)
-    try:
-        log_output.append("<br>2. Attempting IPv4 connection to <b>smtp.gmail.com:465</b> (SSL)...")
-        server = smtplib.SMTP_SSL(smtp_ip, 465, timeout=10, server_hostname="smtp.gmail.com")
-        log_output.append("   - SSL connection established. Logging in...")
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
-        server.quit()
-        log_output.append("<b style='color:green;'>SUCCESS: Test email successfully delivered via Port 465 (SSL)!</b>")
-        return "<br>".join(log_output)
-    except Exception as e465:
-        log_output.append(f"<span style='color:red;'>   - Port 465 failed: {str(e465)}</span>")
+        # Test Port 465 (SSL)
+        try:
+            log_output.append("<br>2. Attempting connection to <b>smtp.gmail.com:465</b> (SSL, IPv4 forced)...")
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+            log_output.append("   - SSL connection established. Logging in...")
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+            server.quit()
+            log_output.append("<b style='color:green;'>SUCCESS: Test email successfully delivered via Port 465 (SSL)!</b>")
+            return "<br>".join(log_output)
+        except Exception as e465:
+            log_output.append(f"<span style='color:red;'>   - Port 465 failed: {str(e465)}</span>")
 
     log_output.append("<br><b style='color:red;'>FAILED: Both Port 587 and 465 failed. Check error details above.</b>")
     return "<br>".join(log_output), 500
