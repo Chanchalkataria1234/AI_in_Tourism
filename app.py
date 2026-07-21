@@ -12,6 +12,7 @@ from flask import session, redirect, url_for
 from dotenv import load_dotenv
 from datetime import datetime
 import smtplib
+import socket
 from email.mime.text import MIMEText
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -395,6 +396,17 @@ def parse_date(date_str):
     except:
         return datetime.strptime(date_str, "%d-%m-%Y")
 
+def get_smtp_ipv4(hostname="smtp.gmail.com"):
+    try:
+        addrs = socket.getaddrinfo(hostname, None, socket.AF_INET, socket.SOCK_STREAM)
+        for addr in addrs:
+            ip = addr[4][0]
+            if ip:
+                return ip
+    except Exception as e:
+        print(f"IPv4 resolution warning for {hostname}: {e}")
+    return hostname
+
 def send_email(to_email, subject, body):
     try:
         sender_email = os.getenv("SMTP_EMAIL", SMTP_EMAIL)
@@ -415,22 +427,46 @@ def send_email(to_email, subject, body):
         msg["From"] = sender_email
         msg["To"] = to_email
 
-        # Try Port 587 (TLS) first, fallback to Port 465 (SSL)
+        smtp_ip = get_smtp_ipv4("smtp.gmail.com")
+        print(f"Resolved Gmail SMTP IPv4 address: {smtp_ip}")
+
+        # Strategy 1: Try IPv4 on Port 587 (TLS)
         try:
-            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-            server.starttls()
+            print("Connecting via IPv4 Port 587 (TLS)...")
+            server = smtplib.SMTP(smtp_ip, 587, timeout=10)
+            server.starttls(server_hostname="smtp.gmail.com")
             server.login(sender_email, sender_password)
             server.send_message(msg)
             server.quit()
-        except Exception as tls_err:
-            print(f"TLS (587) attempt failed: {tls_err}. Retrying with SSL (465)...")
+            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 587 (TLS)")
+            return True
+        except Exception as err587:
+            print(f"Port 587 (TLS) failed: {err587}. Retrying with Port 465 (SSL)...")
+
+        # Strategy 2: Try IPv4 on Port 465 (SSL)
+        try:
+            print("Connecting via IPv4 Port 465 (SSL)...")
+            server = smtplib.SMTP_SSL(smtp_ip, 465, timeout=10, server_hostname="smtp.gmail.com")
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+            server.quit()
+            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 465 (SSL)")
+            return True
+        except Exception as err465:
+            print(f"Port 465 (SSL) failed: {err465}. Retrying with hostname fallback...")
+
+        # Strategy 3: Direct Hostname Fallback
+        try:
             server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
             server.login(sender_email, sender_password)
             server.send_message(msg)
             server.quit()
+            print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Hostname fallback")
+            return True
+        except Exception as err_fallback:
+            print(f"Hostname fallback failed: {err_fallback}")
 
-        print(f"EMAIL SENT SUCCESSFULLY to {to_email}")
-        return True
+        return False
 
     except Exception as e:
         print(f"EMAIL ERROR sending to {to_email}:", str(e))
@@ -457,6 +493,9 @@ def test_email_route():
         log_output.append("<b style='color:red;'>FAILED: No recipient email provided. Pass ?to=your_email@domain.com in URL.</b>")
         return "<br>".join(log_output), 400
 
+    smtp_ip = get_smtp_ipv4("smtp.gmail.com")
+    log_output.append(f"<b>Resolved Gmail IPv4 Address:</b> {smtp_ip}<br>")
+
     msg = MIMEText("This is a test email sent from your deployed Meera Valley Resort application.")
     msg["Subject"] = "Test Email - Meera Valley Resort"
     msg["From"] = sender_email
@@ -464,9 +503,9 @@ def test_email_route():
 
     # Test Port 587 (TLS)
     try:
-        log_output.append("1. Attempting connection to <b>smtp.gmail.com:587</b> (TLS)...")
-        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-        server.starttls()
+        log_output.append("1. Attempting IPv4 connection to <b>smtp.gmail.com:587</b> (TLS)...")
+        server = smtplib.SMTP(smtp_ip, 587, timeout=10)
+        server.starttls(server_hostname="smtp.gmail.com")
         log_output.append("   - TLS connection established. Logging in...")
         server.login(sender_email, sender_password)
         server.send_message(msg)
@@ -478,8 +517,8 @@ def test_email_route():
 
     # Test Port 465 (SSL)
     try:
-        log_output.append("<br>2. Attempting connection to <b>smtp.gmail.com:465</b> (SSL)...")
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+        log_output.append("<br>2. Attempting IPv4 connection to <b>smtp.gmail.com:465</b> (SSL)...")
+        server = smtplib.SMTP_SSL(smtp_ip, 465, timeout=10, server_hostname="smtp.gmail.com")
         log_output.append("   - SSL connection established. Logging in...")
         server.login(sender_email, sender_password)
         server.send_message(msg)
