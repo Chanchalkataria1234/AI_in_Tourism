@@ -1367,7 +1367,7 @@ def send_booking_otp():
 
     session['booking_otp'] = otp
 
-    send_email(
+    email_sent = send_email(
         email,
         "Meera Valley Resort Verification Code",
         f"""
@@ -1379,7 +1379,10 @@ Please enter this code to complete your booking.
 """
     )
 
-    return {"success": True}
+    if email_sent:
+        return {"success": True}
+    else:
+        return {"success": False, "error": "Failed to send verification email. Please check SMTP settings."}
 
 @app.route('/create-booking', methods=['POST'])
 def create_booking():

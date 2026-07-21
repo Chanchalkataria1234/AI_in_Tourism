@@ -768,7 +768,14 @@
             body: 'email=' + encodeURIComponent(email)
         })
         .then(r => r.json())
-        .then(() => alert("Verification code sent successfully."));
+        .then(data => {
+            if (data.success) {
+                alert("Verification code sent successfully. Check your email.");
+            } else {
+                alert("Failed to send email: " + (data.error || "SMTP error"));
+            }
+        })
+        .catch(err => alert("Error requesting verification code: " + err));
     }
 </script>
 </body>
