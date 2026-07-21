@@ -412,18 +412,20 @@ class IPv4ForcedSMTP:
     def __exit__(self, exc_type, exc_val, exc_tb):
         socket.getaddrinfo = self.old_getaddrinfo
 
-def send_email(to_email, subject, body):
+def send_email_detailed(to_email, subject, body):
     try:
         sender_email = os.getenv("SMTP_EMAIL", SMTP_EMAIL)
         sender_password = os.getenv("SMTP_PASSWORD", SMTP_PASSWORD)
 
         if not sender_email or not sender_password:
-            print("EMAIL ERROR: SMTP_EMAIL or SMTP_PASSWORD environment variable is not configured.")
-            return False
+            msg = "SMTP_EMAIL or SMTP_PASSWORD is not configured in Environment Variables."
+            print("EMAIL ERROR:", msg)
+            return False, msg
 
         if not to_email:
-            print("EMAIL ERROR: Recipient email address is missing.")
-            return False
+            msg = "Recipient email address is missing."
+            print("EMAIL ERROR:", msg)
+            return False, msg
 
         print(f"Attempting to send email to: {to_email} via {sender_email}")
 
@@ -431,6 +433,8 @@ def send_email(to_email, subject, body):
         msg["Subject"] = subject
         msg["From"] = sender_email
         msg["To"] = to_email
+
+        errors = []
 
         with IPv4ForcedSMTP():
             # Strategy 1: Try Port 587 (TLS)
@@ -442,9 +446,11 @@ def send_email(to_email, subject, body):
                 server.send_message(msg)
                 server.quit()
                 print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 587 (TLS)")
-                return True
+                return True, "Success"
             except Exception as err587:
-                print(f"Port 587 (TLS) failed: {err587}. Retrying Port 465 (SSL)...")
+                err_str = f"Port 587 (TLS) failed: {err587}"
+                print(err_str)
+                errors.append(err_str)
 
             # Strategy 2: Try Port 465 (SSL)
             try:
@@ -454,15 +460,22 @@ def send_email(to_email, subject, body):
                 server.send_message(msg)
                 server.quit()
                 print(f"EMAIL SENT SUCCESSFULLY to {to_email} via Port 465 (SSL)")
-                return True
+                return True, "Success"
             except Exception as err465:
-                print(f"Port 465 (SSL) failed: {err465}")
+                err_str = f"Port 465 (SSL) failed: {err465}"
+                print(err_str)
+                errors.append(err_str)
 
-        return False
+        return False, " | ".join(errors)
 
     except Exception as e:
-        print(f"EMAIL ERROR sending to {to_email}:", str(e))
-        return False
+        err_str = f"EMAIL ERROR sending to {to_email}: {str(e)}"
+        print(err_str)
+        return False, err_str
+
+def send_email(to_email, subject, body):
+    success, _ = send_email_detailed(to_email, subject, body)
+    return success
 
 @app.route('/test-email')
 def test_email_route():
@@ -1367,7 +1380,7 @@ def send_booking_otp():
 
     session['booking_otp'] = otp
 
-    email_sent = send_email(
+    email_sent, err_msg = send_email_detailed(
         email,
         "Meera Valley Resort Verification Code",
         f"""
@@ -1382,7 +1395,7 @@ Please enter this code to complete your booking.
     if email_sent:
         return {"success": True}
     else:
-        return {"success": False, "error": "Failed to send verification email. Please check SMTP settings."}
+        return {"success": False, "error": err_msg}
 
 @app.route('/create-booking', methods=['POST'])
 def create_booking():
